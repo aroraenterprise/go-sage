@@ -1,9 +1,5 @@
 package main
 
-import (
-	"fmt"
-)
-
 func main() {
 	InitFees()
 	bm := NewBlockManager()
@@ -22,6 +18,4 @@ func main() {
 	tx2 := NewTransaction(0x0, 20, []string{"SET 10 6", "LD 10 10"})
 	blck := NewBlock([]*Transaction{tx2, tx})
 	bm.ProcessBlock(blck)
-
-	fmt.Printf("rlp encoded Tx %q\n", tx.Serialize())
 }

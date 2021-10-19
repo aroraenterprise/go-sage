@@ -1,8 +1,6 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
 	"math/big"
 )
@@ -21,6 +19,8 @@ var Period3Reward *big.Int = new(big.Int)
 var Period4Reward *big.Int = new(big.Int)
 
 type Transaction struct {
+	RlpSerializer
+
 	sender    string
 	recipient uint32
 	value     uint32
@@ -34,7 +34,7 @@ type Transaction struct {
 // NewTransaction returns Transaction
 func NewTransaction(to uint32, value uint32, data []string) *Transaction {
 	tx := Transaction{sender: "12", recipient: to, value: value}
-	tx.fee = 0
+	tx.fee = 0 //uint32((ContractFee + MemoryFee * float32(len(tx.data))) * 1e8)
 
 	tx.data = make([]string, len(data))
 	for i, val := range data {
@@ -45,13 +45,12 @@ func NewTransaction(to uint32, value uint32, data []string) *Transaction {
 		tx.data[i] = instr
 	}
 
-	b := []byte(tx.Serialize())
-	hash := sha256.Sum256(b)
-	tx.addr = hex.EncodeToString(hash[:])
+	b := []byte(tx.MarshalRlp())
+	tx.addr = Sha256Hex(b)
 	return &tx
 }
 
-func (tx *Transaction) Serialize() string {
+func (tx *Transaction) MarshalRlp() []byte {
 	preEnc := []interface{}{
 		"0", // TODO last tx
 		tx.sender,
@@ -60,7 +59,7 @@ func (tx *Transaction) Serialize() string {
 		Uitoa(tx.fee),
 		tx.data,
 	}
-	return RlpEncode(preEnc)
+	return []byte(RlpEncode(preEnc))
 }
 
 func InitFees() {
