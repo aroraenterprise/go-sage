@@ -5,11 +5,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"strconv"
 )
 
 var StepFee *big.Int = new(big.Int)
 var TxFee *big.Int = new(big.Int)
+var ContractFee *big.Int = new(big.Int)
 var MemFee *big.Int = new(big.Int)
 var DataFee *big.Int = new(big.Int)
 var CryptoFee *big.Int = new(big.Int)
@@ -51,10 +51,6 @@ func NewTransaction(to uint32, value uint32, data []string) *Transaction {
 	return &tx
 }
 
-func Uitoa(i uint32) string {
-	return strconv.FormatUint(uint64(i), 10)
-}
-
 func (tx *Transaction) Serialize() string {
 	preEnc := []interface{}{
 		"0", // TODO last tx
@@ -74,12 +70,26 @@ func InitFees() {
 	b80 := new(big.Int)
 	b80.Exp(big.NewInt(2), big.NewInt(80), big.NewInt(0))
 
-	StepFee.Mul(b60, big.NewInt(4096))
-	TxFee.Mul(b60, big.NewInt(524288))
-	MemFee.Mul(b60, big.NewInt(262144))
-	DataFee.Mul(b60, big.NewInt(16384))
-	CryptoFee.Mul(b60, big.NewInt(65536))
-	ExtroFee.Mul(b60, big.NewInt(65536))
+	StepFee.Div(b60, big.NewInt(64))
+	//fmt.Println("StepFee:", StepFee)
+
+	TxFee.Exp(big.NewInt(2), big.NewInt(64), big.NewInt(0))
+	//fmt.Println("TxFee:", TxFee)
+
+	ContractFee.Exp(big.NewInt(2), big.NewInt(64), big.NewInt(0))
+	//fmt.Println("ContractFee:", ContractFee)
+
+	MemFee.Div(b60, big.NewInt(4))
+	//fmt.Println("MemFee:", MemFee)
+
+	DataFee.Div(b60, big.NewInt(16))
+	//fmt.Println("DataFee:", DataFee)
+
+	CryptoFee.Div(b60, big.NewInt(16))
+	//fmt.Println("CrytoFee:", CryptoFee)
+
+	ExtroFee.Div(b60, big.NewInt(16))
+	//fmt.Println("ExtroFee:", ExtroFee)
 
 	Period1Reward.Mul(b80, big.NewInt(1024))
 	//fmt.Println("Period1Reward:", Period1Reward)
