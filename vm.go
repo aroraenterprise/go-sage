@@ -60,7 +60,6 @@ type TxCallback func(opType OpType) bool
 
 type Vm struct {
 	stack  map[string]string
-	iptr   int
 	memory map[string]map[string]string
 }
 
@@ -69,7 +68,10 @@ func NewVm() *Vm {
 	stackSize := uint(256)
 	fmt.Println("stack size =", stackSize)
 
-	return &Vm{make(map[string]string), 0, make(map[string]map[string]string)}
+	return &Vm{
+		stack:  make(map[string]string),
+		memory: make(map[string]map[string]string),
+	}
 }
 
 func (vm *Vm) RunTransaction(tx *Transaction, cb TxCallback) {
@@ -82,17 +84,20 @@ func (vm *Vm) RunTransaction(tx *Transaction, cb TxCallback) {
 	vm.stack = make(map[string]string)
 	vm.stack["0"] = tx.sender
 	vm.stack["1"] = "100"
+	vm.stack["1"] = "1000" //int(tx.fee)
+
+	stPtr := 0
 	vm.memory[tx.addr] = make(map[string]string)
 
 	x := 0
 	y := 1
 	z := 2 //a := 3; b := 4; c := 5
 out:
-	for vm.iptr < len(tx.data) {
+	for stPtr < len(tx.data) {
 
 		base := new(big.Int)
-		op, args, _ := Instr(tx.data[vm.iptr])
-		fmt.Printf("%-3d %d %v\n", vm.iptr, op, args)
+		op, args, _ := Instr(tx.data[stPtr])
+		fmt.Printf("%-3d %d %v\n", stPtr, op, args)
 
 		opType := OpType(tNorm)
 		switch op {
@@ -107,7 +112,7 @@ out:
 			break out
 		}
 
-		nptr := vm.iptr
+		nptr := stPtr
 		switch op {
 		case oSTOP:
 			fmt.Println("exiting (oSTOP), idx =", nptr)
@@ -165,10 +170,10 @@ out:
 			break
 		}
 
-		if vm.iptr == nptr {
-			vm.iptr++
+		if stPtr == nptr {
+			stPtr++
 		} else {
-			vm.iptr = nptr
+			stPtr = nptr
 			fmt.Println("... JMP", nptr, "...")
 		}
 	}

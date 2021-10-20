@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"math"
 )
 
@@ -100,4 +101,58 @@ func Encode(object interface{}) []byte {
 		}
 	}
 	return buff.Bytes()
+}
+
+func FromBin(data []byte) uint64 {
+	if len(data) == 0 {
+		return 0
+	}
+	return FromBin(data[:len(data)-1])*256 + uint64(data[len(data)-1])
+}
+
+func Decode(data []byte, pos int) (interface{}, int) {
+	char := int(data[pos])
+	slice := make([]interface{}, 0)
+	switch {
+	case char < 24:
+		return append(slice, data[pos]), pos + 1
+	case char < 56:
+		b := int(data[pos]) - 23
+		return FromBin(data[pos+1 : pos+1+b]), pos + 1 + b
+	case char < 64:
+		b := int(data[pos]) - 55
+		b2 := int(FromBin(data[pos+1 : pos+1+b]))
+		return FromBin(data[pos+1+b : pos+1+b+b2]), pos + 1 + b + b2
+	case char < 120:
+		b := int(data[pos]) - 64
+		return data[pos+1 : pos+1+b], pos + 1 + b
+	case char < 128:
+		b := int(data[pos]) - 119
+		b2 := int(FromBin(data[pos+1 : pos+1+b]))
+		return data[pos+1+b : pos+1+b+b2], pos + 1 + b + b2
+	case char < 184:
+		b := int(data[pos]) - 128
+		pos++
+		for i := 0; i < b; i++ {
+			var obj interface{}
+
+			obj, pos = Decode(data, pos)
+			slice = append(slice, obj)
+		}
+		return slice, pos
+	case char < 192:
+		b := int(data[pos]) - 183
+		//b2 := int(FromBin(data[pos+1 : pos+1+b])) (ref imprementation has an unused variable)
+		pos = pos + 1 + b
+		for i := 0; i < b; i++ {
+			var obj interface{}
+
+			obj, pos = Decode(data, pos)
+			slice = append(slice, obj)
+		}
+		return slice, pos
+
+	default:
+		panic(fmt.Sprintf("byte not supported: %q", char))
+	}
 }
