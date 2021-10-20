@@ -82,14 +82,16 @@ func Encode(object interface{}) []byte {
 	case []interface{}, []string:
 		WriteSliceHeader := func(length int) {
 			if length < 56 {
-				buff.WriteString(string(rune(length + 128)))
+				buff.WriteByte(byte(length + 128))
 			} else {
 				b2 := ToBin(uint64(length), 0)
-				buff.WriteString(string(rune(len(b2)+183)) + b2)
+				buff.WriteByte(byte(len(b2) + 183))
+				buff.WriteString(b2)
 			}
 		}
 
 		if interSlice, ok := t.([]interface{}); ok {
+			WriteSliceHeader(len(interSlice))
 			for _, val := range interSlice {
 				buff.Write(Encode(val))
 			}
@@ -115,7 +117,7 @@ func Decode(data []byte, pos int) (interface{}, int) {
 	slice := make([]interface{}, 0)
 	switch {
 	case char < 24:
-		return append(slice, data[pos]), pos + 1
+		return data[pos], pos + 1
 	case char < 56:
 		b := int(data[pos]) - 23
 		return FromBin(data[pos+1 : pos+1+b]), pos + 1 + b
@@ -142,7 +144,7 @@ func Decode(data []byte, pos int) (interface{}, int) {
 		return slice, pos
 	case char < 192:
 		b := int(data[pos]) - 183
-		//b2 := int(FromBin(data[pos+1 : pos+1+b])) (ref imprementation has an unused variable)
+		//b2 := int(FromBin(data[pos+1 : pos+1+b])) (ref implementation has an unused variable)
 		pos = pos + 1 + b
 		for i := 0; i < b; i++ {
 			var obj interface{}
