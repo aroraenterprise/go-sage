@@ -3,7 +3,7 @@ package main
 func main() {
 	InitFees()
 	bm := NewBlockManager()
-	tx := NewTransaction(0x0, 20, []string{
+	tx := NewTransaction("\x00", 20, []string{
 		"SET 10 6",
 		"LD 10 10",
 		"LT 10 1 20",
@@ -18,7 +18,7 @@ func main() {
 		"JMP 255",
 	})
 
-	tx2 := NewTransaction(0x0, 20, []string{"SET 10 6", "LD 10 10"})
+	tx2 := NewTransaction("\x00", 20, []string{"SET 10 6", "LD 10 10"})
 	blck := NewBlock([]*Transaction{tx2, tx})
 	bm.ProcessBlock(blck)
 }
