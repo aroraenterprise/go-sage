@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -12,12 +11,22 @@ type Block struct {
 	coinbase string
 
 	difficulty   uint32
-	time         time.Time
+	time         int64
 	nonce        uint32
 	transactions []*Transaction
+	extra        string
 }
 
-func NewBlock(transactions []*Transaction) *Block {
+// NewBlock returns Block
+func NewBlock(raw []byte) *Block {
+	block := &Block{}
+	block.UnmarshalRlp(raw)
+	return block
+}
+
+func CreateBlock(
+	transactions []*Transaction,
+) *Block {
 	block := &Block{
 		transactions: transactions,
 		number:       1,
@@ -25,15 +34,18 @@ func NewBlock(transactions []*Transaction) *Block {
 		coinbase:     "me",
 		difficulty:   10,
 		nonce:        0,
-		time:         time.Now(),
+		time:         time.Now().Unix(),
 	}
+
 	return block
 }
 
+// Hash returns string
 func (block *Block) Hash() string {
 	return Sha256Hex(block.MarshalRlp())
 }
 
+// MarshalRlp returns []byte
 func (block *Block) MarshalRlp() []byte {
 	encTx := make([]string, len(block.transactions))
 	for i, tx := range block.transactions {
@@ -50,12 +62,14 @@ func (block *Block) MarshalRlp() []byte {
 		"",
 		string(Sha256Bin([]byte(RlpEncode(encTx)))),
 		block.difficulty,
-		block.time.String(),
+		uint64(block.time),
 		block.nonce,
 		// extra stuff?
 	}
 
-	return Encode([]interface{}{header, encTx})
+	uncles := []interface{}{}
+
+	return Encode([]interface{}{header, encTx, uncles})
 }
 
 func (block *Block) UnmarshalRlp(data []byte) {
@@ -81,12 +95,19 @@ func (block *Block) UnmarshalRlp(data []byte) {
 				block.difficulty = uint32(difficulty)
 			}
 
-			if time, ok := header[7].([]byte); ok {
-				fmt.Printf("Time is: %s", string(time))
+			if time, ok := header[7].(uint8); ok {
+				block.time = int64(time)
+			}
+			if time, ok := header[7].(uint64); ok {
+				block.time = int64(time)
 			}
 
 			if nonce, ok := header[8].(uint8); ok {
 				block.nonce = uint32(nonce)
+			}
+
+			if extra, ok := header[9].([]byte); ok {
+				block.extra = string(extra)
 			}
 		}
 

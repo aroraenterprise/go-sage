@@ -14,8 +14,7 @@ func TestEncode(t *testing.T) {
 		t.Error(fmt.Sprintf("Expected %q, got %q", strRes, str))
 	}
 
-	dec, _ := Decode(bytes, 0)
-	fmt.Printf("raw: %v encoded: %q == %v\n", dec, str, "dog")
+	// dec, _ := Decode(bytes, 0)
 
 	sliceRes := "\x83CdogCgodCcat"
 	strs := []string{"dog", "god", "cat"}
@@ -24,8 +23,7 @@ func TestEncode(t *testing.T) {
 	if slice != sliceRes {
 		t.Error(fmt.Sprintf("Expected %q, got %q", sliceRes, slice))
 	}
-	dec, _ = Decode(bytes, 0)
-	fmt.Printf("raw: %v encoded: %q == %v\n", dec, slice, strs)
+	// dec, _ = Decode(bytes, 0)
 }
 
 func TestMultiEncode(t *testing.T) {
