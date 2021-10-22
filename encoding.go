@@ -32,6 +32,22 @@ func CompactEncode(hexSlice []int) string {
 	return buff.String()
 }
 
+func CompactDecode(str string) []int {
+	base := CompactHexDecode(str)
+	base = base[:len(base)-1]
+
+	if base[0] >= 2 {
+		base = append(base, 16)
+	}
+	if base[0]%2 == 1 {
+		base = base[1:]
+	} else {
+		base = base[2:]
+	}
+
+	return base
+}
+
 func CompactHexDecode(str string) []int {
 	base := "0123456789abcdef"
 	hexSlice := make([]int, 0)
@@ -41,6 +57,5 @@ func CompactHexDecode(str string) []int {
 		hexSlice = append(hexSlice, strings.IndexByte(base, byte(v)))
 	}
 	hexSlice = append(hexSlice, 16)
-
 	return hexSlice
 }

@@ -60,7 +60,7 @@ func (block *Block) MarshalRlp() []byte {
 		block.coinbase,
 		// root state
 		"",
-		string(Sha256Bin([]byte(RlpEncode(encTx)))),
+		string(Sha256Bin([]byte(Encode(encTx)))),
 		block.difficulty,
 		uint64(block.time),
 		block.nonce,

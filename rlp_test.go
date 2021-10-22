@@ -41,10 +41,10 @@ func TestMultiEncode(t *testing.T) {
 	}
 
 	bytes := Encode(inter)
-	fmt.Printf("%q\n", bytes)
+	// fmt.Printf("%q\n", bytes)
 
-	dec, _ := Decode(bytes, 0)
-	fmt.Println(dec)
+	Decode(bytes, 0)
+	// fmt.Println(dec)
 }
 
 func BenchmarkEncodeDecode(b *testing.B) {

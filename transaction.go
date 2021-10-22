@@ -19,8 +19,6 @@ var Period3Reward *big.Int = new(big.Int)
 var Period4Reward *big.Int = new(big.Int)
 
 type Transaction struct {
-	RlpSerializer
-
 	sender    string
 	recipient string
 	value     uint32
@@ -61,7 +59,7 @@ func (tx *Transaction) MarshalRlp() []byte {
 		tx.fee,
 		tx.data,
 	}
-	return []byte(RlpEncode(preEnc))
+	return []byte(Encode(preEnc))
 }
 
 func (tx *Transaction) UnmarshalRlp(data []byte) {
