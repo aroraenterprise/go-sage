@@ -21,8 +21,10 @@ func (t *Trie) Update(key, value string) {
 	t.root = t.UpdateState(t.root, k, value)
 }
 
-func (t *Trie) Get(key string) ([]byte, error) {
-	return nil, nil
+func (t *Trie) Get(key string) string {
+	k := CompactHexDecode(key)
+
+	return t.GetState(t.root, k)
 }
 
 func (t *Trie) Put(node interface{}) []byte {
@@ -31,6 +33,39 @@ func (t *Trie) Put(node interface{}) []byte {
 
 	t.db.Put([]byte(sha), enc)
 	return sha
+}
+
+func (t *Trie) GetState(node string, key []int) string {
+	if len(key) == 0 || node == "" {
+		return node
+	}
+
+	n, err := t.db.Get([]byte(node))
+	if err != nil {
+		fmt.Println("Error in GetState for node", node, "with key", key)
+		return ""
+	}
+
+	// Decode it
+	currentNode := DecodeNode(n)
+
+	if len(currentNode) == 0 {
+		return ""
+	}
+	if len(currentNode) == 2 {
+		k := CompactDecode(currentNode[0])
+		v := currentNode[1]
+
+		if len(key) >= len(k) && CompareIntSlice(k, key[:len(k)]) {
+			return t.GetState(v, key[len(k):])
+		}
+		return ""
+	}
+	if len(currentNode) == 17 {
+		return t.GetState(currentNode[key[0]], key[1:])
+	}
+	fmt.Println("Get state unexpected return")
+	return ""
 }
 
 func (t *Trie) UpdateState(node string, key []int, value string) string {

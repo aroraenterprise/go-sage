@@ -92,7 +92,7 @@ func (i *DbInterface) Start() {
 		fmt.Println("db >>>")
 		str, _, err := reader.ReadLine()
 		if err != nil {
-			fmt.Println("ERror reading input", err)
+			fmt.Println("Error reading input", err)
 		} else {
 			if !i.ParseInput(string(str)) {
 				return
